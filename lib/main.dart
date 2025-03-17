@@ -7,15 +7,16 @@ import 'screens/cashiering_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  Hive.registerAdapter(ProductAdapter());
-  Hive.registerAdapter(SaleAdapter());
 
-  await Hive.openBox<Product>('products');
-  await Hive.openBox<Sale>('sales');
+  Hive.registerAdapter(SaleAdapter()); 
+  Hive.registerAdapter(SaleItemAdapter()); // ✅ Register SaleItem adapter
+  Hive.registerAdapter(ProductAdapter()); // ✅ Register Product adapter if needed
+
+  await Hive.openBox<Sale>('sales');  // ✅ Ensure the "sales" box is opened
+  await Hive.openBox<Product>('products');  // ✅ Ensure the "products" box is opened
 
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
