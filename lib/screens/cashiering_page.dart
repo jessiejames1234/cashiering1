@@ -278,7 +278,18 @@ void _recordSale() {
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return GestureDetector(
-                    onTap: () => _addToCart(product), // ✅ Clickable to add to cart
+                    onTap: () {
+                      _addToCart(product);
+
+                      // ✅ Show Snackbar when a product is added
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("${product.name} added to cart!"),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -313,6 +324,7 @@ void _recordSale() {
                       ),
                     ),
                   );
+
                 },
               );
             },
@@ -334,6 +346,8 @@ void _showCart() {
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setState) {
+          final ScrollController _scrollController = ScrollController(); // ✅ Added Scroll Controller
+
           return Container(
             padding: const EdgeInsets.all(16),
             height: 450,
@@ -348,6 +362,7 @@ void _showCart() {
                   child: _cart.isEmpty
                       ? const Center(child: Text("No items in cart"))
                       : ListView.builder(
+                          controller: _scrollController, // ✅ Enables scroll control
                           itemCount: _cart.length,
                           itemBuilder: (context, index) {
                             final product = _cart.keys.elementAt(index);
@@ -355,7 +370,7 @@ void _showCart() {
                                 TextEditingController(text: _cart[product]!.toString());
 
                             return ListTile(
-                              leading: _displayProductImageONE(product), // ✅ Shows Product Image
+                              leading: _displayProductImageONE(product),
                               title: Text(product.name),
                               subtitle: Row(
                                 children: [
@@ -376,7 +391,7 @@ void _showCart() {
                                       decoration: const InputDecoration(
                                         border: OutlineInputBorder(),
                                       ),
-                                      onChanged: (value) { // ✅ Updates instantly when typing
+                                      onChanged: (value) {
                                         int newQuantity = int.tryParse(value) ?? 0;
                                         if (newQuantity > 0) {
                                           setState(() {
@@ -394,13 +409,14 @@ void _showCart() {
                                       });
                                     },
                                   ),
+                                  const Text("qty"),
                                 ],
                               ),
                               trailing: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.red), // ✅ "X" to remove item
+                                icon: const Icon(Icons.close, color: Colors.red),
                                 onPressed: () {
                                   setState(() {
-                                    _cart.remove(product); // ✅ Remove the product completely
+                                    _cart.remove(product);
                                   });
                                 },
                               ),
@@ -421,7 +437,19 @@ void _showCart() {
                       onPressed: _cart.isNotEmpty
                           ? () {
                               setState(() {
-                                _cart.clear(); // ✅ Clears entire cart
+                                _cart.clear(); // ✅ Clear cart
+
+                                // ✅ Close the cart modal after clearing
+                                Navigator.pop(context);
+
+                                // ✅ Show Snackbar
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("All items removed from the cart."),
+                                    backgroundColor: Colors.red,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               });
                             }
                           : null,
@@ -445,6 +473,7 @@ void _showCart() {
     },
   );
 }
+
 
 
 
@@ -486,4 +515,4 @@ void _showCart() {
     }
     return const Icon(Icons.image, size: 50);
   }
-}
+}  
