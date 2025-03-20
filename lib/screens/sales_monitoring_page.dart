@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import '../models/sale.dart';
 import '../db/hive_boxes.dart';
-import 'package:intl/intl.dart';
+import 'filtered_sales_page.dart';
 
 class SalesMonitoringPage extends StatefulWidget {
   const SalesMonitoringPage({super.key});
@@ -12,162 +10,343 @@ class SalesMonitoringPage extends StatefulWidget {
 }
 
 class _SalesMonitoringPageState extends State<SalesMonitoringPage> {
-  List<Sale> _filteredSales = [];
-  double _totalEarnings = 0.0;
+  final Map<String, double> _earningsData = {};
+  final Map<String, int> _productSalesCount = {};
 
   @override
   void initState() {
     super.initState();
-    _filterSalesByPeriod("Today");
+    _calculateEarningsForAllPeriods();
+    _calculateBestSellingProducts();
   }
 
-  /// ✅ Fixes filtering logic
-void _filterSalesByPeriod(String period) {
-  final allSales = HiveBoxes.getSales().values.toList();
-  DateTime now = DateTime.now();
-  DateTime startDate, endDate;
-
-  switch (period) {
-    case "Today":
-      startDate = DateTime(now.year, now.month, now.day);
-      endDate = startDate.add(const Duration(days: 1));
-      break;
-    case "Last Day":
-      startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
-      endDate = DateTime(now.year, now.month, now.day);
-      break;
-    case "This Week":
-          startDate = now.subtract(Duration(days: now.weekday + 6)); // Monday of last week
-      endDate = startDate.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59)); // Sunday of last week
-      break;
-    case "Last Week":
-      startDate = now.subtract(Duration(days: now.weekday - 1)); // Monday of this week
-      endDate = startDate.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59)); // Sunday of this week
-      break;
-    case "This Month":
-      startDate = DateTime(now.year, now.month, 1); // First day of the month
-      endDate = DateTime(now.year, now.month + 1, 1).subtract(const Duration(seconds: 1)); // Last second of this month
-      break;
-    case "Last Month":
-      startDate = DateTime(now.year, now.month - 1, 1); // First day of last month
-      endDate = DateTime(now.year, now.month, 1).subtract(const Duration(seconds: 1)); // Last second of last month
-      break;
-    default:
-      return;
+  void _calculateEarningsForAllPeriods() {
+    List<String> periods = [
+      "Today",
+      "Last Day",
+      "This Week",
+      "Last Week",
+      "This Month",
+      "Last Month",
+    ];
+    for (String period in periods) {
+      _earningsData[period] = _getTotalEarnings(period);
+    }
+    setState(() {});
   }
 
-  _filteredSales = allSales.where((sale) {
-    return sale.date.isAfter(startDate) && sale.date.isBefore(endDate);
-  }).toList();
+  double _getTotalEarnings(String period) {
+    final allSales = HiveBoxes.getSales().values.toList();
+    DateTime now = DateTime.now();
+    DateTime startDate, endDate;
 
-  _totalEarnings = _filteredSales.fold(0.0, (sum, sale) => sum + sale.totalPrice);
+    switch (period) {
+      case "Today":
+        startDate = DateTime(now.year, now.month, now.day);
+        endDate = startDate.add(const Duration(days: 1));
+        break;
+      case "Last Day":
+        startDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(const Duration(days: 1));
+        endDate = DateTime(now.year, now.month, now.day);
+        break;
+      case "This Week":
+        startDate = now.subtract(Duration(days: now.weekday - 1));
+        endDate = startDate.add(const Duration(days: 6));
+        break;
+      case "Last Week":
+        startDate = now.subtract(Duration(days: now.weekday + 6));
+        endDate = startDate.add(const Duration(days: 6));
+        break;
+      case "This Month":
+        startDate = DateTime(now.year, now.month, 1);
+        endDate = DateTime(
+          now.year,
+          now.month + 1,
+          1,
+        ).subtract(const Duration(seconds: 1));
+        break;
+      case "Last Month":
+        startDate = DateTime(now.year, now.month - 1, 1);
+        endDate = DateTime(
+          now.year,
+          now.month,
+          1,
+        ).subtract(const Duration(seconds: 1));
+        break;
+      default:
+        return 0.0;
+    }
 
-  setState(() {});
-}
+    return allSales
+        .where(
+          (sale) => sale.date.isAfter(startDate) && sale.date.isBefore(endDate),
+        )
+        .fold(0.0, (sum, sale) => sum + sale.totalPrice);
+  }
 
+  void _calculateBestSellingProducts() {
+    final allSales = HiveBoxes.getSales().values.toList();
+    _productSalesCount.clear();
 
-  /// ✅ Added time in sale details
-  void _showSaleDetails(BuildContext context, Sale sale) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Sale Details"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Date: ${DateFormat.yMMMd().add_jm().format(sale.date)}"), // ✅ Shows date + time
-              const Divider(),
-              const Text("Ordered Products:", style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 5),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: sale.products.map((product) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(child: Text(product.name)),
-                        Text("x${product.quantity}"),
-                        Text("\$${(product.price * product.quantity).toStringAsFixed(2)}"),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-              const Divider(),
-              Text(
-                "Total Amount: \$${sale.totalPrice.toStringAsFixed(2)}",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
-            ),
-          ],
+    for (var sale in allSales) {
+      for (var product in sale.products) {
+        _productSalesCount.update(
+          product.name,
+          (value) => value + product.quantity,
+          ifAbsent: () => product.quantity,
         );
-      },
-    );
+      }
+    }
+    setState(() {});
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Sales Monitoring")),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Wrap(
-              spacing: 8.0,
-              children: [
-                _filterButton("Today"),
-                _filterButton("Last Day"),
-                _filterButton("This Week"),
-                _filterButton("Last Week"),
-                _filterButton("This Month"),
-                _filterButton("Last Month"),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              "Total Earnings: \$${_totalEarnings.toStringAsFixed(2)}",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: _filteredSales.isEmpty
-                ? const Center(child: Text("No sales recorded for this period."))
-                : ListView.builder(
-                    itemCount: _filteredSales.length,
-                    itemBuilder: (context, index) {
-                      final sale = _filteredSales[index];
-                      return ListTile(
-                        title: Text("Date: ${DateFormat.yMMMd().add_jm().format(sale.date)}"), // ✅ Added time
-                        subtitle: Text("Total: \$${sale.totalPrice.toStringAsFixed(2)}"),
-                        trailing: ElevatedButton(
-                          onPressed: () => _showSaleDetails(context, sale),
-                          child: const Text("See Details"),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+  void _navigateToFilteredSales(String period) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FilteredSalesPage(period: period),
       ),
     );
   }
 
-  Widget _filterButton(String period) {
-    return ElevatedButton(
-      onPressed: () => _filterSalesByPeriod(period),
-      child: Text(period),
+  String _calculatePercentageChange(String current, String previous) {
+    double currentEarnings = _earningsData[current] ?? 0.0;
+    double previousEarnings = _earningsData[previous] ?? 0.0;
+    if (current == "Last Month") {
+      previousEarnings = _earningsData["This Month"] ?? 0.0;
+      double percentageChange =
+          ((currentEarnings - previousEarnings) / previousEarnings) * 100;
+
+      return percentageChange >= 0
+          ? "+${percentageChange.toStringAsFixed(2)}%" // 🔼 Green for increase
+          : "${percentageChange.toStringAsFixed(2)}%"; // 🔻 Red for decrease
+    }
+
+    // ✅ If there were no previous earnings and now there are, it's a 100% increase
+    if (previousEarnings == 0.0) {
+      return currentEarnings > 0 ? "+100.00%" : "0%";
+    }
+
+    // ✅ Correct calculation for all cases
+    double percentageChange =
+        ((currentEarnings - previousEarnings) / previousEarnings) * 100;
+
+    return percentageChange >= 0
+        ? "+${percentageChange.toStringAsFixed(2)}%" // 🔼 Green for increase
+        : "${percentageChange.toStringAsFixed(2)}%"; // 🔻 Red for decrease
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<String> periods = [
+      "Today",
+      "Last Day",
+      "This Week",
+      "Last Week",
+      "This Month",
+      "Last Month",
+    ];
+
+    var scaffold = Scaffold(
+      backgroundColor: const Color(0xFFDEC6B1), // ✅ Matches the AppBar color
+
+      appBar: AppBar(
+        title: const Text(
+          "Sales Monitoring",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            letterSpacing: 1.2,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFC29D7F),
+        foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+        elevation: 10, // Adds a slight shadow for depth
+        shadowColor: Colors.black,
+        toolbarHeight: 80, // ✅ Increased height to add more bottom padding
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(50), // ✅ Increased bottom padding
+          ),
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.only(
+            left: 12,
+            top: 8,
+            bottom: 8,
+          ), // ✅ Adds padding
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color.fromARGB(
+                255,
+                201,
+                55,
+                36,
+              ).withOpacity(0.8), // ✅ Light background
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () {
+                Navigator.pop(context); // ✅ Navigates back
+              },
+            ),
+          ),
+        ),
+      ),
+
+      body: Container(
+        color: Color(0xFFDEC6B1), // Second Color (Tan/Brownish)
+
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              // Earnings Summary
+              GridView.builder(
+                shrinkWrap: true,
+                itemCount: periods.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12.0,
+                  mainAxisSpacing: 12.0,
+                  childAspectRatio: 2.0,
+                ),
+                itemBuilder: (context, index) {
+                  String period = periods[index];
+                  String previousPeriod =
+                      index + 1 < periods.length
+                          ? periods[index + 1]
+                          : periods[index];
+
+                  String changeText = _calculatePercentageChange(
+                    period,
+                    previousPeriod,
+                  );
+                  double changeValue =
+                      double.tryParse(changeText.replaceAll('%', '')) ?? 0.0;
+                  Color changeColor =
+                      changeValue > 0
+                          ? Colors.green
+                          : (changeValue < 0
+                              ? Colors.red
+                              : const Color.fromARGB(255, 82, 80, 80));
+
+                  return GestureDetector(
+                    onTap: () => _navigateToFilteredSales(period),
+                    child: Card(
+                      
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                          elevation: 10, // ✅ Adds a subtle shadow for depth
+                          shadowColor: Colors.black,
+
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Color(0xFFC29D7F),
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              period,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 0, 0, 0),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "\₱${_earningsData[period]?.toStringAsFixed(2) ?? "0.00"}",
+                              style: const TextStyle(
+                                color: Color.fromARGB(
+                                                        255,
+                                                        26,
+                                                        88,
+                                                        29,
+                                                      ),
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              "Change: $changeText",
+                              style: TextStyle(
+                                color: changeColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Best Selling Products
+              const Text(
+                "Best Selling Products",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child:
+                    _productSalesCount.isEmpty
+                        ? const Center(child: Text("No sales data available."))
+                        : ListView.builder(
+                          itemCount: _productSalesCount.length,
+                          itemBuilder: (context, index) {
+                            var sortedProducts =
+                                _productSalesCount.entries.toList()
+                                  ..sort((a, b) => b.value.compareTo(a.value));
+
+                            final product = sortedProducts[index];
+
+                            return Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              color: Color(0xFFC29D7F),
+                          elevation: 10, // ✅ Adds a subtle shadow for depth
+                          shadowColor: Colors.black,
+
+                              child: ListTile(
+                                leading: const Icon(
+                                  Icons.local_offer,
+                                  color: Color.fromARGB(255, 0, 0, 0),
+                                ),
+                                title: Text(product.key),
+                                trailing: Text(
+                                  "Sold: ${product.value}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+    return scaffold;
   }
 }
