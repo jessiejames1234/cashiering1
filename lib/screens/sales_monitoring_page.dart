@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/hive_boxes.dart';
 import 'filtered_sales_page.dart';
+import 'package:intl/intl.dart';
 
 class SalesMonitoringPage extends StatefulWidget {
   const SalesMonitoringPage({super.key});
@@ -113,32 +114,67 @@ class _SalesMonitoringPageState extends State<SalesMonitoringPage> {
     );
   }
 
-  String _calculatePercentageChange(String current, String previous) {
-    double currentEarnings = _earningsData[current] ?? 0.0;
-    double previousEarnings = _earningsData[previous] ?? 0.0;
-    if (current == "Last Month") {
-      previousEarnings = _earningsData["This Month"] ?? 0.0;
-      double percentageChange =
-          ((currentEarnings - previousEarnings) / previousEarnings) * 100;
+String _calculatePercentageChange(String current, String previous) {
+  double currentEarnings = _earningsData[current] ?? 0.0;
+  double previousEarnings = _earningsData[previous] ?? 0.0;
 
-      return percentageChange >= 0
-          ? "+${percentageChange.toStringAsFixed(2)}%" // 🔼 Green for increase
-          : "${percentageChange.toStringAsFixed(2)}%"; // 🔻 Red for decrease
-    }
-
-    // ✅ If there were no previous earnings and now there are, it's a 100% increase
-    if (previousEarnings == 0.0) {
-      return currentEarnings > 0 ? "+100.00%" : "0%";
-    }
-
-    // ✅ Correct calculation for all cases
-    double percentageChange =
-        ((currentEarnings - previousEarnings) / previousEarnings) * 100;
-
-    return percentageChange >= 0
-        ? "+${percentageChange.toStringAsFixed(2)}%" // 🔼 Green for increase
-        : "${percentageChange.toStringAsFixed(2)}%"; // 🔻 Red for decrease
+  // Case 1: both are zero — no change
+  if (previousEarnings == 0.0 && currentEarnings == 0.0) {
+    return "0%";
   }
+
+  // Case 2: previous was zero, now has earnings — show 100%
+  if (previousEarnings == 0.0 && currentEarnings > 0.0) {
+    return "+100.00%";
+  }
+
+  // Case 3: now is zero, but had earnings before — full drop
+  if (currentEarnings == 0.0 && previousEarnings > 0.0) {
+    return "-100.00%";
+  }
+
+  // Case 4: standard percentage change
+  double percentageChange = ((currentEarnings - previousEarnings) / previousEarnings) * 100;
+
+  return "${percentageChange >= 0 ? '+' : ''}${percentageChange.toStringAsFixed(2)}%";
+}
+
+
+void _filterByCustomDateRange() async {
+  final picked = await showDateRangePicker(
+    context: context,
+    firstDate: DateTime(2000),
+    lastDate: DateTime.now(),
+    builder: (context, child) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: Color(0xFFC29D7F),
+            onPrimary: Colors.black,
+            onSurface: Colors.black,
+          ),
+        ),
+        child: child!,
+      );
+    },
+  );
+
+  if (picked != null) {
+    String label =
+        "Sale For: ${DateFormat.yMMMd().format(picked.start)} To ${DateFormat.yMMMd().format(picked.end)}";
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FilteredSalesPage(
+          period: label,
+          customStartDate: picked.start,
+          customEndDate: picked.end,
+        ),
+      ),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -214,8 +250,27 @@ class _SalesMonitoringPageState extends State<SalesMonitoringPage> {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
+Center(
+  child: ElevatedButton.icon(
+    onPressed: _filterByCustomDateRange,
+    icon: const Icon(Icons.date_range, color: Colors.black,),
+    label: const Text("Filter by Date"),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Color(0xFFC29D7F),
+      foregroundColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      elevation: 5,
+    ),
+  ),
+),
+
+const SizedBox(height: 12),
+
               // Earnings Summary
               GridView.builder(
+                
                 shrinkWrap: true,
                 itemCount: periods.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -271,6 +326,9 @@ class _SalesMonitoringPageState extends State<SalesMonitoringPage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                                                  Text(
+                         "Total Earning", // ✅ Normal text
+                      ),
                             Text(
                               "\₱${_earningsData[period]?.toStringAsFixed(2) ?? "0.00"}",
                               style: const TextStyle(
@@ -283,13 +341,13 @@ class _SalesMonitoringPageState extends State<SalesMonitoringPage> {
                                 fontSize: 14,
                               ),
                             ),
-                            Text(
-                              "Change: $changeText",
-                              style: TextStyle(
-                                color: changeColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            //Text(
+                              //"Change: $changeText",
+                             // style: TextStyle(
+                              //  color: changeColor,
+                              //  fontWeight: FontWeight.bold,
+                            //  ),
+                            //),
                           ],
                         ),
                       ),

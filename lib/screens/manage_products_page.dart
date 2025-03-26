@@ -99,185 +99,204 @@ class _ManageProductsPageState extends State<ManageProductsPage> {
     }
   }
 
-void _editProduct(Product product) {
-  _nameController.text = product.name;
-  _priceController.text = product.price.toString();
+  void _editProduct(Product product) {
+    _nameController.text = product.name;
+    _priceController.text = product.price.toString();
 
-  if (kIsWeb && product.imagePath.startsWith("data:image")) {
-    _webImageBytes = base64Decode(product.imagePath.split(",")[1]);
-    _selectedImagePath = product.imagePath;
-  } else {
-    _selectedImagePath = product.imagePath;
-    _webImageBytes = null;
-  }
+    if (kIsWeb && product.imagePath.startsWith("data:image")) {
+      _webImageBytes = base64Decode(product.imagePath.split(",")[1]);
+      _selectedImagePath = product.imagePath;
+    } else {
+      _selectedImagePath = product.imagePath;
+      _webImageBytes = null;
+    }
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // ✅ Rounded corners
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFDEC6B1), // ✅ Consistent background color
-            borderRadius: BorderRadius.circular(15),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15), // ✅ Rounded corners
           ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ✅ Title
-                  const Text(
-                    "Edit Product",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ✅ Product Name Input
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: "Product Name",
-                      filled: true,
-                      fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide.none,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDEC6B1), // ✅ Consistent background color
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ✅ Title
+                    const Text(
+                      "Edit Product",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                  // ✅ Price Input
-                  TextField(
-                    controller: _priceController,
-                    decoration: const InputDecoration(
-                      labelText: "Price",
-                      prefixText: "₱",
-                      filled: true,
-                      fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ✅ Image Preview
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC29D7F), // ✅ Matches other modals
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: _selectedImagePath != null || _webImageBytes != null
-                        ? _displayImage()
-                        : const Icon(Icons.image, size: 100, color: Colors.white),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ✅ Change Image Button
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent, // ✅ Color matches the theme
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () async {
-                      await _pickImage();
-                      setState(() {});
-                    },
-                    icon: const Icon(Icons.image),
-                    label: const Text("Change Image"),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ✅ Buttons (Cancel & Save)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          textStyle: const TextStyle(fontSize: 16),
+                    // ✅ Product Name Input
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: "Product Name",
+                        filled: true,
+                        fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          borderSide: BorderSide.none,
                         ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel"),
                       ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ✅ Price Input
+                    TextField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: "Price",
+                        prefixText: "₱",
+                        filled: true,
+                        fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          borderSide: BorderSide.none,
                         ),
-                        onPressed: () {
-                          final newName = _nameController.text.trim();
-                          final newPrice =
-                              double.tryParse(_priceController.text) ?? product.price;
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 10),
 
-                          // ✅ Ensure new name is unique (excluding the same product)
-                          bool nameExists = HiveBoxes.getProducts().values.any(
-                            (p) =>
-                                p.name.toLowerCase() == newName.toLowerCase() &&
-                                p.key != product.key,
-                          );
+                    // ✅ Image Preview
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(
+                          0xFFC29D7F,
+                        ), // ✅ Matches other modals
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:
+                          _selectedImagePath != null || _webImageBytes != null
+                              ? _displayImage()
+                              : const Icon(
+                                Icons.image,
+                                size: 100,
+                                color: Colors.white,
+                              ),
+                    ),
 
-                          if (nameExists) {
+                    const SizedBox(height: 10),
+
+                    // ✅ Change Image Button
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.blueAccent, // ✅ Color matches the theme
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        await _pickImage();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.image),
+                      label: const Text(
+                        "Change Image",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // ✅ Buttons (Cancel & Save)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
+                          onPressed: () {
+                            final newName = _nameController.text.trim();
+                            final newPrice =
+                                double.tryParse(_priceController.text) ??
+                                product.price;
+
+                            // ✅ Ensure new name is unique (excluding the same product)
+                            bool nameExists = HiveBoxes.getProducts().values
+                                .any(
+                                  (p) =>
+                                      p.name.toLowerCase() ==
+                                          newName.toLowerCase() &&
+                                      p.key != product.key,
+                                );
+
+                            if (nameExists) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Product '$newName' already exists!",
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            product.name = newName;
+                            product.price = newPrice;
+
+                            if (_selectedImagePath != null ||
+                                _webImageBytes != null) {
+                              product.imagePath =
+                                  kIsWeb && _webImageBytes != null
+                                      ? "data:image/png;base64,${base64Encode(_webImageBytes!)}"
+                                      : _selectedImagePath!;
+                            }
+
+                            product.save();
+                            Navigator.pop(context);
+                            setState(() {});
+
+                            // ✅ Show success message with product name
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text("Product '$newName' already exists!"),
-                                backgroundColor: Colors.red,
+                                content: Text(
+                                  "Product '$newName' updated successfully!",
+                                ),
+                                backgroundColor: Colors.blue,
                               ),
                             );
-                            return;
-                          }
-
-                          product.name = newName;
-                          product.price = newPrice;
-
-                          if (_selectedImagePath != null || _webImageBytes != null) {
-                            product.imagePath =
-                                kIsWeb && _webImageBytes != null
-                                    ? "data:image/png;base64,${base64Encode(_webImageBytes!)}"
-                                    : _selectedImagePath!;
-                          }
-
-                          product.save();
-                          Navigator.pop(context);
-                          setState(() {});
-
-                          // ✅ Show success message with product name
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Product '$newName' updated successfully!",
-                              ),
-                              backgroundColor: Colors.blue,
-                            ),
-                          );
-                        },
-                        child: const Text("Save Changes"),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
+                          },
+                          child: const Text(
+                            "Save Changes",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   void _toggleActive(Product product) {
     product.isActive = !product.isActive;
@@ -417,35 +436,35 @@ void _editProduct(Product product) {
         child: Column(
           children: [
             const SizedBox(height: 15),
-              Card(
-                color: Color(0xFFC29D7F),
-        
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 4, // ✅ Adds a subtle shadow
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 4.0,
-                  ), // ✅ Proper padding
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: "Search Product",
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: Color.fromARGB(255, 0, 0, 0),
-                      ),                   
-        
-                      border:
-                          InputBorder
-                              .none, // ✅ Removes extra border (Fixes double box issue)
+            Card(
+              color: Color(0xFFC29D7F),
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4, // ✅ Adds a subtle shadow
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 4.0,
+                ), // ✅ Proper padding
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: "Search Product",
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color.fromARGB(255, 0, 0, 0),
                     ),
+
+                    border:
+                        InputBorder
+                            .none, // ✅ Removes extra border (Fixes double box issue)
                   ),
                 ),
               ),
-            const Divider(color:  Color(0xFFC29D7F)),
+            ),
+            const Divider(color: Color(0xFFC29D7F)),
             Expanded(
               child: ValueListenableBuilder(
                 valueListenable: Hive.box<Product>('products').listenable(),
@@ -456,18 +475,19 @@ void _editProduct(Product product) {
                           ? allProducts
                           : allProducts
                               .where(
-                                (product) => product.name.toLowerCase().contains(
-                                  _searchController.text.toLowerCase(),
-                                ),
+                                (product) =>
+                                    product.name.toLowerCase().contains(
+                                      _searchController.text.toLowerCase(),
+                                    ),
                               )
                               .toList();
-        
+
                   if (allProducts.isEmpty) {
                     return const Center(child: Text("No products available."));
                   } else if (products.isEmpty) {
                     return const Center(child: Text("No products found."));
                   }
-        
+
                   return ListView.builder(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -476,7 +496,7 @@ void _editProduct(Product product) {
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
-        
+
                       return Padding(
                         padding: const EdgeInsets.only(
                           bottom: 10,
@@ -509,7 +529,8 @@ void _editProduct(Product product) {
                                 ), // ✅ Added spacing between image & text
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
@@ -525,7 +546,12 @@ void _editProduct(Product product) {
                                       Text(
                                         "\₱${product.price.toStringAsFixed(2)}",
                                         style: const TextStyle(
-                                          color: Color.fromARGB(255, 26, 88, 29),
+                                          color: Color.fromARGB(
+                                            255,
+                                            26,
+                                            88,
+                                            29,
+                                          ),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -586,137 +612,149 @@ void _editProduct(Product product) {
     return const Icon(Icons.image, size: 50);
   }
 
-void _showAddProductDialog() {
-  setState(() {
-    _nameController.clear();
-    _priceController.clear();
-    _selectedImagePath = null;
-    _webImageBytes = null;
-  });
+  void _showAddProductDialog() {
+    setState(() {
+      _nameController.clear();
+      _priceController.clear();
+      _selectedImagePath = null;
+      _webImageBytes = null;
+    });
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // ✅ Rounded corners
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFDEC6B1), // ✅ Consistent background color
-            borderRadius: BorderRadius.circular(15),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15), // ✅ Rounded corners
           ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ✅ Title
-                  const Text(
-                    "Add Product",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ✅ Product Name Input
-                  TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: "Product Name",
-                      filled: true,
-                      fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide.none,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDEC6B1), // ✅ Consistent background color
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ✅ Title
+                    const Text(
+                      "Add Product",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                  // ✅ Price Input
-                  TextField(
-                    controller: _priceController,
-                    decoration: const InputDecoration(
-                      labelText: "Price",
-                      prefixText: "₱",
-                      filled: true,
-                      fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ✅ Image Preview
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC29D7F), // ✅ Matches other modals
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: _selectedImagePath != null || _webImageBytes != null
-                        ? _displayImage()
-                        : const Icon(Icons.image, size: 100, color: Colors.white),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ✅ Pick Image Button
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent, // ✅ Button color
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () async {
-                      await _pickImage();
-                      setState(() {});
-                    },
-                    icon: const Icon(Icons.image),
-                    label: const Text("Pick Image"),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ✅ Buttons (Cancel & Add Product)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          textStyle: const TextStyle(fontSize: 16),
+                    // ✅ Product Name Input
+                    TextField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: "Product Name",
+                        filled: true,
+                        fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          borderSide: BorderSide.none,
                         ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel"),
                       ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ✅ Price Input
+                    TextField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: "Price",
+                        prefixText: "₱",
+                        filled: true,
+                        fillColor: Color(0xFFEFE6DD), // ✅ Light fill color
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          borderSide: BorderSide.none,
                         ),
-                        onPressed: () {
-                          _addProduct();
-                          Navigator.pop(context);
-                        },
-                        child: const Text("Add Product"),
                       ),
-                    ],
-                  ),
-                ],
-              );
-            },
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ✅ Image Preview
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(
+                          0xFFC29D7F,
+                        ), // ✅ Matches other modals
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child:
+                          _selectedImagePath != null || _webImageBytes != null
+                              ? _displayImage()
+                              : const Icon(
+                                Icons.image,
+                                size: 100,
+                                color: Colors.white,
+                              ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // ✅ Pick Image Button
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent, // ✅ Button color
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        await _pickImage();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.image),
+                      label: const Text(
+                        "Pick Image",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // ✅ Buttons (Cancel & Add Product)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
+                          onPressed: () {
+                            _addProduct();
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            "Add Product",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 }

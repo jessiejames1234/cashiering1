@@ -5,8 +5,15 @@ import '../db/hive_boxes.dart';
 
 class FilteredSalesPage extends StatefulWidget {
   final String period;
+final DateTime? customStartDate;
+final DateTime? customEndDate;
 
-  const FilteredSalesPage({super.key, required this.period});
+const FilteredSalesPage({
+  super.key,
+  required this.period,
+  this.customStartDate,
+  this.customEndDate,
+});
 
   @override
   State<FilteredSalesPage> createState() => _FilteredSalesPageState();
@@ -28,7 +35,25 @@ class _FilteredSalesPageState extends State<FilteredSalesPage> {
     final allSales = HiveBoxes.getSales().values.toList();
     DateTime now = DateTime.now();
     DateTime startDate, endDate, prevStartDate, prevEndDate;
+    if (widget.customStartDate != null && widget.customEndDate != null) {
+      _filteredSales =
+          HiveBoxes.getSales().values.where((sale) {
+            return sale.date.isAfter(widget.customStartDate!) &&
+                sale.date.isBefore(
+                  widget.customEndDate!.add(const Duration(days: 1)),
+                );
+          }).toList();
 
+      _totalEarnings = _filteredSales.fold(
+        0.0,
+        (sum, sale) => sum + sale.totalPrice,
+      );
+
+      _previousEarnings = 0.0;
+      _comparisonText = "";
+      setState(() {});
+      return;
+    }
     switch (period) {
       case "Today":
         startDate = DateTime(now.year, now.month, now.day);
@@ -128,149 +153,158 @@ class _FilteredSalesPageState extends State<FilteredSalesPage> {
         : "${percentageChange.toStringAsFixed(2)}%"; // 🔻 Red for decrease
   }
 
-void _showSaleDetails(BuildContext context, Sale sale) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // ✅ Rounded corners
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFDEC6B1), // ✅ Full background color
-            borderRadius: BorderRadius.circular(15),
+  void _showSaleDetails(BuildContext context, Sale sale) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15), // ✅ Rounded corners
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ✅ Title
-              const Text(
-                "Sale Details",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDEC6B1), // ✅ Full background color
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ✅ Title
+                const Text(
+                  "Sale Details",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              // ✅ Date Section
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Color(0xFFC29D7F), // ✅ Light blue background
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  "Date: ${DateFormat.yMMMd().add_jm().format(sale.date)}",
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              const Text(
-                "Ordered Products",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const Divider(
-                color: Color(0xFFC29D7F),
-              ),
-
-              // ✅ Product List with Background
-              Column(
-                children: sale.products.map((product) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Color(0xFFC29D7F), // ✅ Light background for each row
-                      borderRadius: BorderRadius.circular(8),
+                // ✅ Date Section
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFC29D7F), // ✅ Light blue background
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "Date: ${DateFormat.yMMMd().add_jm().format(sale.date)}",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            product.name,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                            overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                const Text(
+                  "Ordered Products",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const Divider(color: Color(0xFFC29D7F)),
+
+                // ✅ Product List with Background
+                Column(
+                  children:
+                      sale.products.map((product) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 10,
                           ),
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Color(
+                              0xFFC29D7F,
+                            ), // ✅ Light background for each row
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  product.name,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                "x${product.quantity}",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(width: 150),
+                              Text(
+                                "\₱${(product.price * product.quantity).toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                ),
+
+                const Divider(color: Color(0xFFC29D7F)),
+                // ✅ Total Amount Section
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC29D7F), // ✅ Background color
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      children: [
+                        const TextSpan(
+                          text: "Total Amount: ", // ✅ Label stays the same
+                          style: TextStyle(
+                            color: Colors.black,
+                          ), // ✅ Label color
                         ),
-                        Text(
-                          "x${product.quantity}",
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                        SizedBox(width: 150),
-                        Text(
-                          "\₱${(product.price * product.quantity).toStringAsFixed(2)}",
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        TextSpan(
+                          text:
+                              "\₱${sale.totalPrice.toStringAsFixed(2)}", // ✅ Price value
+                          style: TextStyle(
+                            color:
+                                sale.totalPrice > 0
+                                    ? Color.fromARGB(255, 26, 88, 29)
+                                    : Colors.red, // ✅ Dynamic color
+                          ),
                         ),
                       ],
                     ),
-                  );
-                }).toList(),
-              ),
-
-              const Divider(
-                color: Color(0xFFC29D7F),
-              ),
-              // ✅ Total Amount Section
-Container(
-  padding: const EdgeInsets.all(10),
-  decoration: BoxDecoration(
-    color: const Color(0xFFC29D7F), // ✅ Background color
-    borderRadius: BorderRadius.circular(8),
-  ),
-  child: RichText(
-    text: TextSpan(
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-      ),
-      children: [
-        const TextSpan(
-          text: "Total Amount: ", // ✅ Label stays the same
-          style: TextStyle(color: Colors.black), // ✅ Label color
-        ),
-        TextSpan(
-          text: "\₱${sale.totalPrice.toStringAsFixed(2)}", // ✅ Price value
-          style: TextStyle(
-            color: sale.totalPrice > 0 ? Color.fromARGB(
-                                              255,
-                                              26,
-                                              88,
-                                              29,
-                                            ) : Colors.red, // ✅ Dynamic color
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-
-              const SizedBox(height: 10),
-
-              // ✅ Close Button
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  textStyle: const TextStyle(fontSize: 16),
+                  ),
                 ),
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Close"),
-              ),
-            ],
+
+                const SizedBox(height: 10),
+
+                // ✅ Close Button
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close"),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
-
-
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +320,7 @@ Container(
 
       appBar: AppBar(
         title: Text(
-          "Sales for ${widget.period}",
+          "${widget.period}",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -338,54 +372,55 @@ Container(
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
-RichText(
-  text: TextSpan(
-    style: const TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.bold,
-      color: Colors.black, // ✅ Main text color
-      height: 2.5, // ✅ Ensures consistent text height
-    ),
-    children: [
-      const TextSpan(
-        text: "Total Earnings: ", // ✅ Normal text
-      ),
-      WidgetSpan(
-        alignment: PlaceholderAlignment.middle, // ✅ Aligns inline with text height
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFC29D7F),// ✅ Background color for amount
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            "\₱${_totalEarnings.toStringAsFixed(2)}",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(
-                                                        255,
-                                                        26,
-                                                        88,
-                                                        29,
-                                                      ), // ✅ Text color for contrast
-              height: 1.5, // ✅ Ensures consistent height alignment
-            ),
-          ),
-        ),
-      ),
-    ],
-  ),
-),
-
-
-                Text(
-                  "$_comparisonText: $changeText",
-                  style: TextStyle(
-                    color: changeColor,
-                    fontWeight: FontWeight.bold,
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black, // ✅ Main text color
+                      height: 2.5, // ✅ Ensures consistent text height
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: "Total Earnings: ", // ✅ Normal text
+                      ),
+                      WidgetSpan(
+                        alignment:
+                            PlaceholderAlignment
+                                .middle, // ✅ Aligns inline with text height
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 4,
+                            horizontal: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFFC29D7F,
+                            ), // ✅ Background color for amount
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            "\₱${_totalEarnings.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(
+                                255,
+                                26,
+                                88,
+                                29,
+                              ), // ✅ Text color for contrast
+                              height:
+                                  1.5, // ✅ Ensures consistent height alignment
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+
+
               ],
             ),
           ),
@@ -409,13 +444,41 @@ RichText(
                             title: Text(
                               "Date: ${DateFormat.yMMMd().add_jm().format(sale.date)}",
                             ),
-                            subtitle: Text(
-                              "Total: \₱${sale.totalPrice.toStringAsFixed(2)}",
-                            ),
+subtitle: RichText(
+  text: TextSpan(
+    style: DefaultTextStyle.of(context).style,
+    children: [
+      const TextSpan(
+        text: "Total: ",
+        style: TextStyle(
+          color: Colors.black,
+        ),
+      ),
+      TextSpan(
+        text: "₱${sale.totalPrice.toStringAsFixed(2)}",
+        style: const TextStyle(
+          color: Color.fromARGB(
+                                255,
+                                26,
+                                88,
+                                29,
+                              ), // ,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ],
+  ),
+),
+
                             trailing: ElevatedButton(
                               onPressed: () => _showSaleDetails(context, sale),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 174, 130, 95), // ✅ Brownish background color
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  174,
+                                  130,
+                                  95,
+                                ), // ✅ Brownish background color
 
                                 foregroundColor: const Color.fromARGB(
                                   255,

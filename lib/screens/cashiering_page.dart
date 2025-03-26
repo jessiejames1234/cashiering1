@@ -83,210 +83,240 @@ class _CashieringPageState extends State<CashieringPage>
     });
   }
 
-void _checkout() {
-  if (_cart.isEmpty) return;
+  void _checkout() {
+    if (_cart.isEmpty) return;
 
-  final TextEditingController cashController = TextEditingController();
+    final TextEditingController cashController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // ✅ Consistent rounded corners
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFDEC6B1), // ✅ Background color to match `_showSaleDetails()`
-            borderRadius: BorderRadius.circular(15),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              15,
+            ), // ✅ Consistent rounded corners
           ),
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              double totalAmount = _calculateTotal();
-              double cash = double.tryParse(cashController.text) ?? 0.0;
-              double change = cash - totalAmount;
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(
+                0xFFDEC6B1,
+              ), // ✅ Background color to match `_showSaleDetails()`
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                double totalAmount = _calculateTotal();
+                double cash = double.tryParse(cashController.text) ?? 0.0;
+                double change = cash - totalAmount;
 
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ✅ Title
-                  const Text(
-                    "Payment",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ✅ Title
+                    const Text(
+                      "Payment",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                  // ✅ Ordered Products List
-                  const Text(
-                    "Ordered Products",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const Divider(color: Color(0xFFC29D7F)),
+                    // ✅ Ordered Products List
+                    const Text(
+                      "Ordered Products",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Divider(color: Color(0xFFC29D7F)),
 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _cart.entries.map((entry) {
-                      final product = entry.key;
-                      final quantity = entry.value;
-                      return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC29D7F), // ✅ Consistent row color
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                product.name,
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                                overflow: TextOverflow.ellipsis,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children:
+                          _cart.entries.map((entry) {
+                            final product = entry.key;
+                            final quantity = entry.value;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 6,
+                                horizontal: 10,
                               ),
-                            ),
-                            Text(
-                              "x$quantity",
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                            ),
-                                                    SizedBox(width: 150),
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFFC29D7F,
+                                ), // ✅ Consistent row color
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      product.name,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    "x$quantity",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 150),
 
-                            Text(
-                              "\₱${(product.price * quantity).toStringAsFixed(2)}",
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const Divider(color: Color(0xFFC29D7F)),
-
-                  // ✅ Total Amount Section
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC29D7F), // ✅ Matches `_showSaleDetails()`
-                      borderRadius: BorderRadius.circular(8),
+                                  Text(
+                                    "\₱${(product.price * quantity).toStringAsFixed(2)}",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                     ),
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        children: [
-                          const TextSpan(
-                            text: "Total Amount: ", // ✅ Label stays the same
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          TextSpan(
-                            text: "\₱${totalAmount.toStringAsFixed(2)}",
-                            style: TextStyle(
-                              color: totalAmount > 0
-                                  ? const Color.fromARGB(255, 26, 88, 29)
-                                  : Colors.red, // ✅ Dynamic color
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
 
-                  const SizedBox(height: 10),
+                    const Divider(color: Color(0xFFC29D7F)),
 
-                  // ✅ Cash Input Field
-                  TextField(
-                    controller: cashController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: "Enter Cash Amount",
-                      prefixText: "\₱",
-                      filled: true,
-                      fillColor: Color(0xFFEFE6DD), // ✅ Light fill for input field
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8)),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onChanged: (value) {
-                      setState(() {}); // ✅ Updates change calculation dynamically
-                    },
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // ✅ Change Amount (if applicable)
-                  if (cash >= totalAmount)
+                    // ✅ Total Amount Section
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.2),
+                        color: const Color(
+                          0xFFC29D7F,
+                        ), // ✅ Matches `_showSaleDetails()`
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        "Change: \₱${change.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          fontSize: 16,
+                      child: RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          children: [
+                            const TextSpan(
+                              text: "Total Amount: ", // ✅ Label stays the same
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            TextSpan(
+                              text: "\₱${totalAmount.toStringAsFixed(2)}",
+                              style: TextStyle(
+                                color:
+                                    totalAmount > 0
+                                        ? const Color.fromARGB(255, 26, 88, 29)
+                                        : Colors.red, // ✅ Dynamic color
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // ✅ Cash Input Field
+                    TextField(
+                      controller: cashController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "Enter Cash Amount",
+                        prefixText: "\₱",
+                        filled: true,
+                        fillColor: Color(
+                          0xFFEFE6DD,
+                        ), // ✅ Light fill for input field
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(
+                          () {},
+                        ); // ✅ Updates change calculation dynamically
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // ✅ Change Amount (if applicable)
+                    if (cash >= totalAmount)
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          "Change: \₱${change.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+
+                    if (cash < totalAmount && cashController.text.isNotEmpty)
+                      const Text(
+                        "Insufficient cash!",
+                        style: TextStyle(
+                          color: Colors.red,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
                         ),
                       ),
+
+                    const SizedBox(height: 10),
+
+                    // ✅ Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                cash >= totalAmount
+                                    ? Colors.green
+                                    : Colors.grey,
+                          ),
+                          onPressed:
+                              cash >= totalAmount
+                                  ? () {
+                                    _recordSale();
+                                    Navigator.pop(context);
+                                  }
+                                  : null,
+                          child: const Text("Pay"),
+                        ),
+                      ],
                     ),
-
-                  if (cash < totalAmount && cashController.text.isNotEmpty)
-                    const Text(
-                      "Insufficient cash!",
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                  const SizedBox(height: 10),
-
-                  // ✅ Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          textStyle: const TextStyle(fontSize: 16),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel"),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: cash >= totalAmount ? Colors.green : Colors.grey,
-                        ),
-                        onPressed: cash >= totalAmount
-                            ? () {
-                                _recordSale();
-                                Navigator.pop(context);
-                              }
-                            : null,
-                        child: const Text("Pay"),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
-
+        );
+      },
+    );
+  }
 
   void _recordSale() {
     final salesBox = HiveBoxes.getSales();
@@ -314,26 +344,26 @@ void _checkout() {
       _cart.clear(); // ✅ Clear cart after successful payment
     });
 
-ScaffoldMessenger.of(context)
-  ..hideCurrentSnackBar() // ✅ Removes any existing SnackBar
-  ..showSnackBar(
-    SnackBar(
-      content: Text(
-        " added to cart!",
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      ),
-      backgroundColor: Colors.green,
-      behavior: SnackBarBehavior.floating, // ✅ Ensures it's above UI elements
-      margin: const EdgeInsets.all(16), // ✅ Proper positioning
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8), // ✅ Modern rounded look
-      ),
-      duration: const Duration(seconds: 3), // ✅ Stays longer for better visibility
-    ),
-  );
-
-
-
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar() // ✅ Removes any existing SnackBar
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            " added to Sales!",
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.green,
+          behavior:
+              SnackBarBehavior.floating, // ✅ Ensures it's above UI elements
+          margin: const EdgeInsets.all(16), // ✅ Proper positioning
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8), // ✅ Modern rounded look
+          ),
+          duration: const Duration(
+            seconds: 3,
+          ), // ✅ Stays longer for better visibility
+        ),
+      );
   }
 
   /// ✅ Updates product list when Hive database changes
@@ -449,10 +479,9 @@ ScaffoldMessenger.of(context)
                 child: ListView(
                   children: [
                     Container(
-                                            color: Color(0xFFC29D7F),
+                      color: Color(0xFFC29D7F),
 
                       child: ListTile(
-                        
                         leading: const Icon(
                           Icons.store,
                           color: Color.fromARGB(255, 0, 0, 0),
@@ -502,15 +531,6 @@ ScaffoldMessenger.of(context)
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              // ✅ Footer
-              const Padding(
-                padding: EdgeInsets.all(12.0),
-                child: Text(
-                  "Version 1.0.0",
-                  style: TextStyle(color: Colors.grey),
                 ),
               ),
             ],
@@ -593,106 +613,244 @@ ScaffoldMessenger.of(context)
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
-return Builder(
-  builder: (BuildContext rootContext) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _animationController.forward().then(
-            (_) => _animationController.reverse(),
-          );
-        });
-        _addToCart(product);
+                      return Builder(
+                        builder: (BuildContext rootContext) {
+                          return GestureDetector(
+                            onTap: () {
+                              final TextEditingController quantityController =
+                                  TextEditingController(text: "1");
 
-        // ✅ Correctly shows SnackBar
-        ScaffoldMessenger.of(rootContext)
-          ..hideCurrentSnackBar() // ✅ Removes previous SnackBar
-          ..showSnackBar(
-            SnackBar(
-              content: Text(
-                "${product.name} added to cart!",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating, // ✅ Ensures visibility
-              margin: const EdgeInsets.all(16), // ✅ Adds spacing
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8), // ✅ Modern rounded design
-              ),
-              duration: const Duration(seconds: 3), // ✅ Stays longer
-            ),
-          );
-      },
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Card(
-          color: const Color(0xFFC29D7F),
-          elevation: 10,
-          shadowColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _displayProductImage(product),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Column(
-                  children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "\₱${product.price.toStringAsFixed(2)}",
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 26, 88, 29),
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    backgroundColor: const Color(0xFFDEC6B1),
+                                    contentPadding: const EdgeInsets.all(16),
+                                    title: const Text(
+                                      "Enter Quantity",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // ✅ Product image
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          child:
+                                              kIsWeb &&
+                                                      product.imagePath
+                                                          .startsWith(
+                                                            "data:image",
+                                                          )
+                                                  ? Image.network(
+                                                    product.imagePath,
+                                                    width: 120,
+                                                    height: 120,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                  : (!kIsWeb &&
+                                                      product
+                                                          .imagePath
+                                                          .isNotEmpty)
+                                                  ? Image.file(
+                                                    File(product.imagePath),
+                                                    width: 120,
+                                                    height: 120,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                  : const Icon(
+                                                    Icons.image,
+                                                    size: 50,
+                                                  ),
+                                        ),
 
-            ],
-          ),
-        ),
-      ),
-    );
-  },
-);
+                                        const SizedBox(height: 10),
+
+                                        // ✅ Product name and price
+                                        Text(
+                                          product.name,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          "\₱${product.price.toStringAsFixed(2)}",
+                                          style: const TextStyle(
+                                            color: Color.fromARGB(
+                                              255,
+                                              26,
+                                              88,
+                                              29,
+                                            ),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 12),
+
+                                        // ✅ Quantity input
+                                        TextField(
+                                          controller: quantityController,
+                                          keyboardType: TextInputType.number,
+                                          decoration: const InputDecoration(
+                                            labelText: "Quantity",
+                                            border: OutlineInputBorder(),
+                                            filled: true,
+                                            fillColor:  Color(0xFFC29D7F),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel"),
+                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        onPressed: () {
+                                          final qty =
+                                              int.tryParse(
+                                                quantityController.text,
+                                              ) ??
+                                              0;
+                                          if (qty > 0) {
+                                            setState(() {
+                                              _cart.update(
+                                                product,
+                                                (existing) => existing + qty,
+                                                ifAbsent: () => qty,
+                                              );
+                                            });
+
+                                            Navigator.pop(context);
+
+                                            _animationController.forward().then(
+                                              (_) =>
+                                                  _animationController
+                                                      .reverse(),
+                                            );
+
+                                            ScaffoldMessenger.of(context)
+                                              ..hideCurrentSnackBar()
+                                              ..showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    "${product.name} x$qty added to cart!",
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  margin: const EdgeInsets.all(
+                                                    16,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  duration: const Duration(
+                                                    seconds: 3,
+                                                  ),
+                                                ),
+                                              );
+                                          }
+                                          },
+                                          child: const Text(
+                                            "Confirm",
+                                            style: TextStyle(color: Colors.black),
+                                          ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+
+                            child: ScaleTransition(
+                              scale: _scaleAnimation,
+                              child: Card(
+                                color: const Color(0xFFC29D7F),
+                                elevation: 10,
+                                shadowColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: _displayProductImage(product),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8.0,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            product.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            "\₱${product.price.toStringAsFixed(2)}",
+                                            style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                255,
+                                                26,
+                                                88,
+                                                29,
+                                              ),
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
                     },
                   );
                 },
               ),
             ),
-
-            
           ],
-
         ),
       ),
-
-
-
-
-      
-
     );
-
-
   }
 
   void _showCart() {
@@ -965,7 +1123,7 @@ return Builder(
                                 vertical: 12,
                               ),
                             ),
-                            label: const Text("Clear Cart"),
+                            label: const Text("Clear Cart", style: TextStyle(color: Colors.black)),
                           ),
                           ElevatedButton.icon(
                             icon: const Icon(
@@ -983,7 +1141,7 @@ return Builder(
                                 vertical: 12,
                               ),
                             ),
-                            label: const Text("Checkout"),
+                            label: const Text("Checkout", style: TextStyle(color: Colors.black)),
                           ),
                         ],
                       ),
@@ -1027,7 +1185,7 @@ return Builder(
       return Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-          border: Border(top: BorderSide(            color: Color(0xFFC29D7F), width: 3)),
+          border: Border(top: BorderSide(color: Color(0xFFC29D7F), width: 3)),
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
